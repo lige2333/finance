@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PV/Annuity</title>
+    <link rel="stylesheet" th:href="@{/moon/css/bootstrap.css}" type="text/css"/>
+    <link rel="stylesheet" th:href="@{/icon/css/font-awesome.min.css}" type="text/css"/>
+</head>
+<body>
+<div class="container-fluid"id="app">
+    <h1 align="center">复利/年金现值系数读取</h1>
+    <div class="row">
+        <div class="col-sm-4 offset-sm-1">
+            <h3>数据输入</h3>
+            <table class="table table-light">
+                <tr>
+                    <td>
+                        <span>折现率(百分比形式)：</span>
+                        <input type="text" name="ratePV" id="ratePV" v-model="ratePV" class="form-control form-control-sm">%
+                    </td>
+                    <td>
+                        <span>年数：</span>
+                        <input type="number" name="periodPV" id="periodPV" v-model="periodPV" class="form-control form-control-sm">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="button" name="in" id="in" value="查询" @click="getResult()" class="btn btn-sm btn-outline-warning">
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td>复利现值系数：</td>
+                    <td id="PV" v-text="PV"></td>
+                </tr>
+                <tr>
+                    <td>年金现值系数：</td>
+                    <td id="Annuity" v-text="Annuity"></td>
+                </tr>
+            </table>
+
+        </div>
+
+
+    </div>
+</div>
+<script th:src="@{/moon/js/jquery.js}"></script>
+<script th:src="@{/layer/layer.js}"></script>
+<script th:src="@{/moon/js/vue.js}"></script>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            ratePV:"",
+            periodPV:"",
+            PV:"",
+            Annuity:""
+        },
+        methods: {
+            getResult: function () {
+                $.ajax({
+                    url: "/PV/getResult",
+                    type: "POST",
+                    data: {
+                        ratePV:this.ratePV,
+                        periodPV:this.periodPV
+                    },
+                    success: function (data) {
+                        if(data.msg!="success"){
+                            layer.msg(data.msg)
+                            return;
+                        }else {
+                            layer.msg("计算成功！");
+                            app.PV=data.PV;
+                            app.Annuity=data.Annuity;
+                        }
+                    }
+
+                });
+            }
+        }
+
+
+    })
+
+
+</script>
+</body>
+</html>

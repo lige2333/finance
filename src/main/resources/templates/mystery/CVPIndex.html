@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CVP</title>
+    <link rel="stylesheet" th:href="@{/moon/css/bootstrap.css}" type="text/css"/>
+    <link rel="stylesheet" th:href="@{/icon/css/font-awesome.min.css}" type="text/css"/>
+</head>
+<body>
+<div class="container-fluid"id="app">
+    <h1 align="center">本量利（CVP）分析</h1>
+    <div class="row">
+        <div class="col-sm-8 offset-sm-1">
+            <h3>BEP(盈亏平衡点)</h3>
+            <table class="table table-light">
+                <tr>
+                    <td>
+                        <span>商品单价</span>
+                        <input type="text" name="probability" id="salesPU" v-model="salesPU" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>变动成本单价：</span>
+                        <input type="text" name="outcome" id="varCostPU" v-model="varCostPU" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>权重：</span>
+                        <input type="text" name="outcome" id="weight" v-model="weight" class="form-control form-control-sm">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="button" name="in" id="add" value="添加商品" @click="addProduct()" class="btn btn-sm btn-outline-warning">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>总固定成本：</span>
+                        <input type="text" name="outcome" id="fixCost" v-model="fixCost" class="form-control form-control-sm">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="button" name="in" id="in" value="计算CVP" @click="getResult()" class="btn btn-sm btn-outline-warning">
+                        <input type="button" name="clear" id="clear" value="清空" @click="clearList()" class="btn btn-sm btn-outline-warning">
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr v-for="cvp in cvps">
+                    <td>商品：</td>
+                    <td></td>
+                    <td>售价：</td>
+                    <td  v-text="cvp.salesPU"></td>
+                    <td>，变动成本：</td>
+                    <td  v-text="cvp.varCostPU"></td>
+                    <td>，权重：</td>
+                    <td  v-text="cvp.weight"></td>
+                </tr>
+                <tr>
+                    <td>分析结果：</td>
+                </tr>
+                <tr v-for="cvpres in CVPresult">
+                    <td>商品售价：</td>
+                    <td  v-text="cvpres.salesPU"></td>
+                    <td>，BEP数量：</td>
+                    <td  v-text="cvpres.bepunits"></td>
+                    <td>，BEP销售额：</td>
+                    <td  v-text="cvpres.bepsales"></td>
+                </tr>
+            </table>
+            <h3>安全边际</h3>
+            <table class="table table-light">
+                <tr>
+                    <td>
+                        <span>BEP销售额：</span>
+                        <input type="text" name="bepSales" id="bepSales" v-model="bepSales" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>预算销售额：</span>
+                        <input type="text" name="budSales" id="budSales" v-model="budSales" class="form-control form-control-sm">
+                    </td>
+
+                </tr>
+                <tr>
+                    <td>
+                        <input type="button" name="in" id="calMargin" value="计算安全边际" @click="calMargin()" class="btn btn-sm btn-outline-warning">
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td>安全边际：</td>
+                    <td  v-text="marginOfSafety"></td>
+                </tr>
+            </table>
+            <h3>得到利润的销量计算</h3>
+            <table class="table table-light">
+                <tr>
+                    <td>
+                        <span>需求利润：</span>
+                        <input type="text" name="targetProfit" id="targetProfit" v-model="targetProfit" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>固定成本：</span>
+                        <input type="text" name="FC" id="FC" v-model="FC" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>单个商品贡献：</span>
+                        <input type="text" name="CPU" id="CPU" v-model="CPU" class="form-control form-control-sm">
+                    </td>
+
+                </tr>
+                <tr>
+                    <td>
+                        <input type="button" name="in" id="calUnits" value="计算销量" @click="salesAmount()" class="btn btn-sm btn-outline-warning">
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td>销量：</td>
+                    <td  v-text="SalesAmount"></td>
+                </tr>
+            </table>
+
+        </div>
+
+
+    </div>
+</div>
+<script th:src="@{/moon/js/jquery.js}"></script>
+<script th:src="@{/layer/layer.js}"></script>
+<script th:src="@{/moon/js/vue.js}"></script>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            salesPU:"",
+            varCostPU:"",
+            weight:"",
+            cvps:[],
+            fixCost:"",
+            CVPresult:[],
+            bepSales:"",
+            budSales:"",
+            marginOfSafety:"",
+            targetProfit:"",
+            FC:"",
+            CPU:"",
+            SalesAmount:""
+
+        },
+        methods: {
+            addProduct: function () {
+                $.ajax({
+                    url: "/CVP/saveProduct",
+                    type: "POST",
+                    data: {
+                        salesPU:this.salesPU,
+                        varCostPU:this.varCostPU,
+                        weight:this.weight
+                    },
+                    dataType: "JSON",
+                    success: function (data) {
+                        if(data.msg!="success"){
+                            layer.msg(data.msg)
+                            return;
+                        }else {
+                            layer.msg("添加成功！");
+                            app.cvps=data.cvps;
+                        }
+                    }
+
+                });
+            },
+            getResult: function () {
+                $.ajax({
+                    url: "/CVP/calCVP",
+                    type: "POST",
+                    data: {
+                        fixCost:this.fixCost
+                    },
+                    dataType: "JSON",
+                    success: function (data) {
+                        if(data.msg!="success"){
+                            layer.msg(data.msg)
+                            return;
+                        }else {
+                            layer.msg("计算成功！");
+                            console.log(data.CVPresult);
+                            app.CVPresult=data.CVPresult;
+                        }
+                    }
+
+                });
+            },
+            clearList: function () {
+                $.ajax({
+                    url: "/CVP/clearList",
+                    type: "POST",
+                    data: {
+                    },
+                    success: function (data) {
+                        layer.msg(data)
+                        app.salesPU="";
+                        app.cvps=[];
+                        app.varCostPU="";
+                        app.weight="";
+                        app.fixCost="";
+                        app.CVPresult=[];
+                    }
+
+                });
+            },
+            queryCVP: function () {
+                $.ajax({
+                    url: "/CVP/queryCVP",
+                    type: "POST",
+                    data: {
+                    },
+                    dataType: "JSON",
+                    success: function (data) {
+                        app.cvps=data.cvps;
+                    }
+
+                });
+            },
+            salesAmount: function () {
+                $.ajax({
+                    url: "/CVP/salesAmount",
+                    type: "POST",
+                    data: {
+                        targetProfit:this.targetProfit,
+                        FC:this.FC,
+                        CPU:this.CPU
+                    },
+                    dataType: "JSON",
+                    success: function (data) {
+                        if(data.msg!="success"){
+                            layer.msg(data.msg)
+                            return;
+                        }else {
+                            layer.msg("计算成功！");
+                            app.SalesAmount=data.SalesAmount;
+                        }
+                    }
+
+                });
+            },
+            calMargin: function () {
+                $.ajax({
+                    url: "/CVP/calMargin",
+                    type: "POST",
+                    data: {
+                        targetProfit:this.bepSales,
+                        budSales:this.budSales
+                    },
+                    dataType: "JSON",
+                    success: function (data) {
+                        if(data.msg!="success"){
+                            layer.msg(data.msg)
+                            return;
+                        }else {
+                            layer.msg("计算成功！");
+                            app.marginOfSafety=data.marginOfSafety;
+                        }
+                    }
+
+                });
+            }
+        },
+        mounted:function () {
+            this.queryCVP();
+        }
+
+
+    })
+
+
+</script>
+</body>
+</html>

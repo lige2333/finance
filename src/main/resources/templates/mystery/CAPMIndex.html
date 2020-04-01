@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CAPM</title>
+    <link rel="stylesheet" th:href="@{/moon/css/bootstrap.css}" type="text/css"/>
+    <link rel="stylesheet" th:href="@{/icon/css/font-awesome.min.css}" type="text/css"/>
+</head>
+<body>
+<div class="container-fluid"id="app">
+    <h1 align="center">CAPM（资本资产定价模型）计算</h1>
+    <div class="row">
+        <div class="col-sm-8 offset-sm-1">
+            <h3>数据输入</h3>
+            <table class="table table-light">
+                <tr>
+                    <td>
+                        <span>β系数：</span>
+                        <input type="text" name="beita" id="beita" v-model="beita" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>无风险利率（Risk-Free Return）：</span>
+                        <input type="text" name="RF" id="RF" v-model="RF" class="form-control form-control-sm">%
+                    </td>
+                    <td>
+                        <span>市场回报率（Market Return）：</span>
+                        <input type="text" name="RM" id="RM" v-model="RM" class="form-control form-control-sm">%
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="button" name="in" id="in" value="计算" @click="getResult()" class="btn btn-sm btn-outline-warning">
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td>预期收益率：</td>
+                    <td id="returnRate" v-text="returnRate"></td>
+                </tr>
+            </table>
+
+        </div>
+
+
+    </div>
+</div>
+<script th:src="@{/moon/js/jquery.js}"></script>
+<script th:src="@{/layer/layer.js}"></script>
+<script th:src="@{/moon/js/vue.js}"></script>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            beita:"",
+            RF:"",
+            RM:"",
+            returnRate:""
+        },
+        methods: {
+            getResult: function () {
+                $.ajax({
+                    url: "/CAPM/getResult",
+                    type: "POST",
+                    data: {
+                        beita:this.beita,
+                        RF:this.RF,
+                        RM:this.RM
+                    },
+                    success: function (data) {
+                        if(data.msg!="success"){
+                            layer.msg(data.msg)
+                            return;
+                        }else {
+                            layer.msg("计算成功！");
+                            app.returnRate=data.returnRate;
+                        }
+                    }
+
+                });
+            }
+        }
+
+
+    })
+
+
+</script>
+</body>
+</html>

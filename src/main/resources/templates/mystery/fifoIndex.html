@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>FIFO</title>
+    <link rel="stylesheet" th:href="@{/moon/css/bootstrap.css}" type="text/css"/>
+    <link rel="stylesheet" th:href="@{/icon/css/font-awesome.min.css}" type="text/css"/>
+</head>
+<body>
+<div class="container-fluid"id="app">
+    <h1 align="center">FIFO存货计量</h1>
+    <div class="row">
+        <div class="col-sm-4 offset-sm-1">
+            <h3>存入仓库</h3>
+            <table class="table table-light">
+                <tr>
+                <td>
+                    <span>单价</span>
+                    <input type="text" name="singlePrice" id="singlePrice" v-model="singlePrice" class="form-control form-control-sm">
+                </td>
+                <td>
+                    <span>商品数量</span>
+                    <input type="number" name="num" id="num" v-model="num" class="form-control form-control-sm">
+                </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="button" name="in" id="in" value="提交" @click="queryOnline()" class="btn btn-sm btn-outline-warning">
+                        <input type="button" name="clear" id="clear" value="清空" @click="clearList()" class="btn btn-sm btn-outline-warning">
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td>商品总数：</td>
+                    <td id="totalNum" v-text="totalNum"></td>
+                </tr>
+                <tr>
+                    <td>商品总价：</td>
+                    <td id="totalPrice" v-text="totalPrice"></td>
+                </tr>
+                <tr>
+                    <td>仓库详情：</td>
+                </tr>
+                <tr v-for="prod in products">
+                        <td>批次：</td>
+                        <td  v-text="prod.batch"></td>
+                        <td>|</td>
+                        <td>单价：</td>
+                        <td  v-text="prod.singlePrice"></td>
+                        <td>|</td>
+                        <td>数量：</td>
+                        <td  v-text="prod.num"></td>
+                </tr>
+            </table>
+
+        </div>
+        <div class="col-sm-4 offset-sm-1">
+            <h3>发货</h3>
+            <table class="table table-light">
+                <tr>
+                    <td>
+                    <span>取出商品数</span>
+                    <input type="number" name="outNum" id="outNum" v-model="outNum" class="form-control form-control-sm">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                    <input type="button" name="out" id="out" value="取出" @click="takeOut()" class="btn btn-sm btn-outline-warning">
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td>取出详情：</td>
+                </tr>
+                <tr v-for="prod in takeOuts">
+                    <td>批次：</td>
+                    <td  v-text="prod.batch"></td>
+                    <td>|</td>
+                    <td>单价：</td>
+                    <td  v-text="prod.singlePrice"></td>
+                    <td>|</td>
+                    <td>数量：</td>
+                    <td  v-text="prod.num"></td>
+                </tr>
+            </table>
+        </div>
+
+
+    </div>
+</div>
+<script th:src="@{/moon/js/jquery.js}"></script>
+<script th:src="@{/layer/layer.js}"></script>
+<script th:src="@{/moon/js/vue.js}"></script>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            num:"",
+            singlePrice:"",
+            batch:1,
+            totalNum: "",
+            totalPrice: "",
+            products:[],
+            outNum:"",
+            takeOuts:[]
+        },
+        methods: {
+            queryOnline: function () {
+                $.ajax({
+                    url: "/FIFO/savePro",
+                    type: "POST",
+                    data: {
+                        num: this.num,
+                        singlePrice: this.singlePrice,
+                        batch: this.batch
+                    },
+                    dataType: "JSON",
+                    success: function (data) {
+                        layer.msg(data.msg)
+                        app.queryBatch();
+                    }
+
+                });
+            },
+            queryBatch: function () {
+                $.ajax({
+                    url: "/FIFO/queryBatch",
+                    type: "POST",
+                    data: {
+                    },
+                    dataType: "JSON",
+                    success: function (data) {
+                        app.products=data.products;
+                        app.totalNum=data.amount;
+                        app.totalPrice=data.price;
+                        app.batch = data.batch;
+                    }
+
+                });
+            },
+            clearList: function () {
+                $.ajax({
+                    url: "/FIFO/clearList",
+                    type: "POST",
+                    data: {
+                    },
+                    success: function (data) {
+                        layer.msg(data)
+                        app.products=[];
+                        app.takeOuts=[];
+                        app.totalNum="";
+                        app.totalPrice="";
+                        app.queryBatch();
+                    }
+
+                });
+            },
+            takeOut: function () {
+                $.ajax({
+                    url: "/FIFO/takeOut",
+                    type: "POST",
+                    data: {
+                        outNum:this.outNum
+                    },
+                    success: function (data) {
+                        if(data.msg!="success"){
+                            layer.msg(data.msg)
+                            return;
+                        }else {
+                            layer.msg("取出成功！")
+                            app.takeOuts=data.prod
+                            app.queryBatch();
+                        }
+
+
+                    }
+
+                });
+            }
+        },
+        mounted:function () {
+            this.queryBatch();
+        }
+
+
+    })
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CAPM</title>
+    <link rel="stylesheet" th:href="@{/moon/css/bootstrap.css}" type="text/css"/>
+    <link rel="stylesheet" th:href="@{/icon/css/font-awesome.min.css}" type="text/css"/>
+</head>
+<body>
+<div class="container-fluid"id="app">
+    <h1 align="center">经济订货批量计算</h1>
+    <div class="row">
+        <div class="col-sm-8 offset-sm-1">
+            <h3>数据输入</h3>
+            <table class="table table-light">
+                <tr>
+                    <td>
+                        <span>每期需求量（Demand）：</span>
+                        <input type="text" name="demand" id="demand" v-model="demand" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>每次订货固定成本（Ordering Cost）：</span>
+                        <input type="text" name="OC" id="OC" v-model="OC" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>每期单个产品仓储成本（Carrying Cost）：</span>
+                        <input type="text" name="CC" id="CC" v-model="CC" class="form-control form-control-sm">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="button" name="in" id="in" value="计算" @click="getResult()" class="btn btn-sm btn-outline-warning">
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td>经济订货批量：</td>
+                    <td id="EOQ" v-text="EOQ"></td>
+                </tr>
+            </table>
+
+        </div>
+
+
+    </div>
+</div>
+<script th:src="@{/moon/js/jquery.js}"></script>
+<script th:src="@{/layer/layer.js}"></script>
+<script th:src="@{/moon/js/vue.js}"></script>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            demand:"",
+            OC:"",
+            CC:"",
+            EOQ:""
+        },
+        methods: {
+            getResult: function () {
+                $.ajax({
+                    url: "/EOQ/getResult",
+                    type: "POST",
+                    data: {
+                        demand:this.demand,
+                        OC:this.OC,
+                        CC:this.CC
+                    },
+                    success: function (data) {
+                        if(data.msg!="success"){
+                            layer.msg(data.msg)
+                            return;
+                        }else {
+                            layer.msg("计算成功！");
+                            app.EOQ=data.EOQ;
+                        }
+                    }
+
+                });
+            }
+        }
+
+
+    })
+
+
+</script>
+</body>
+</html>

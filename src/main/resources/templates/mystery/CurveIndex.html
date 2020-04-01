@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>学习曲线</title>
+    <link rel="stylesheet" th:href="@{/moon/css/bootstrap.css}" type="text/css"/>
+    <link rel="stylesheet" th:href="@{/icon/css/font-awesome.min.css}" type="text/css"/>
+</head>
+<body>
+<div class="container-fluid"id="app">
+    <h1 align="center">学习曲线</h1>
+    <div class="row">
+        <div class="col-sm-6 offset-sm-1">
+            <h3>数据输入</h3>
+            <table class="table table-light">
+                <tr>
+                    <td>
+                        <span>曲线百分比（小数形式）</span>
+                        <input type="text" name="percentage" id="percentage" v-model="percentage" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>产品数量：</span>
+                        <input type="text" name="units" id="units" v-model="units" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>产品初始生产时间：</span>
+                        <input type="text" name="time" id="time" v-model="time" class="form-control form-control-sm">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="button" name="in" id="in" value="计算结果" @click="getResult()" class="btn btn-sm btn-outline-warning">
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr v-for="(res,index) in result.result">
+                    <td>产品:</td>
+                    <td>{{ index+1 }}:</td>
+                    <td  v-text="res"></td>
+                </tr>
+                <tr>
+                    <td>总数：</td>
+                    <td id="all" v-text="result.total"></td>
+                </tr>
+                <tr>
+                    <td>平均值：</td>
+                    <td id="avg" v-text="result.average"></td>
+                </tr>
+            </table>
+
+        </div>
+
+
+    </div>
+</div>
+<script th:src="@{/moon/js/jquery.js}"></script>
+<script th:src="@{/layer/layer.js}"></script>
+<script th:src="@{/moon/js/vue.js}"></script>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            percentage:"",
+            units:"",
+            time:"",
+            result:[]
+        },
+        methods: {
+            getResult: function () {
+                $.ajax({
+                    url: "/Curve/getResult",
+                    type: "POST",
+                    data: {
+                        percentage:this.percentage,
+                        units:this.units,
+                        time:this.time
+                    },
+                    dataType: "JSON",
+                    success: function (data) {
+                        if(data.msg!="success"){
+                            layer.msg(data.msg)
+                            return;
+                        }else {
+                            layer.msg("计算成功！");
+                            console.log(data.result);
+                            app.result=data.result;
+                        }
+                    }
+
+                });
+            }
+        }
+
+
+    })
+
+
+</script>
+</body>
+</html>

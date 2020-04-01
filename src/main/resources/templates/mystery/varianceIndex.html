@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>variance差异分析</title>
+    <link rel="stylesheet" th:href="@{/moon/css/bootstrap.css}" type="text/css"/>
+    <link rel="stylesheet" th:href="@{/icon/css/font-awesome.min.css}" type="text/css"/>
+</head>
+<body>
+<div class="container-fluid"id="app">
+    <h1 align="center">Variance Analysis差异分析</h1>
+    <div class="row">
+        <div class="col-sm-4 offset-sm-1">
+            <h3>Standard部分</h3>
+            <table class="table table-light">
+                <tr>
+                    <td>
+                        <span>直接原材料单价(Direct Material SP)</span>
+                        <input type="text" name="singlePrice" id="DMSP" v-model="DMSP" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>直接人工单价(Direct Labor SP)</span>
+                        <input type="text" name="singlePrice" id="DLSP" v-model="DLSP" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>变动间接费用单价(Variable Overhead SP)</span>
+                        <input type="text" name="singlePrice" id="VOSP" v-model="VOSP" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>吸收固定间接费用(Absorbed fixed Overhead)</span>
+                        <input type="text" name="singlePrice" id="FOSP" v-model="FOSP" class="form-control form-control-sm">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>直接原材料数量(Direct Material SQ)</span>
+                        <input type="text" name="singlePrice" id="DMSQ" v-model="DMSQ" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>直接人工数量(Direct Labor SQ)</span>
+                        <input type="text" name="singlePrice" id="DLSQ" v-model="DLSQ" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>变动间接费用数量(Variable Overhead SQ)</span>
+                        <input type="text" name="singlePrice" id="VOSQ" v-model="VOSQ" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>标准固定间接费用(Budgeted fixed Overhead)</span>
+                        <input type="text" name="singlePrice" id="FOBP" v-model="FOBP" class="form-control form-control-sm">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="button" name="in" id="in" value="提交" @click="getResult()" class="btn btn-sm btn-outline-warning">
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+        <div class="col-sm-4 offset-sm-1">
+            <h3>Actual部分</h3>
+            <table class="table table-light">
+                <tr>
+                    <td>
+                        <span>直接原材料单价(Direct Material AP)</span>
+                        <input type="text" name="singlePrice" id="DMAP" v-model="DMAP" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>直接人工单价(Direct Labor AP)</span>
+                        <input type="text" name="singlePrice" id="DLAP" v-model="DLAP" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>变动间接费用单价(Variable Overhead AP)</span>
+                        <input type="text" name="singlePrice" id="VOAP" v-model="VOAP" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>固定间接费用(fixed Overhead)</span>
+                        <input type="text" name="singlePrice" id="FOAP" v-model="FOAP" class="form-control form-control-sm">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>直接原材料数量(Direct Material AQ)</span>
+                        <input type="text" name="singlePrice" id="DMAQ" v-model="DMAQ" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>直接人工数量(Direct Labor AQ)</span>
+                        <input type="text" name="singlePrice" id="DLAQ" v-model="DLAQ" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>变动间接费用数量(Variable Overhead AQ)</span>
+                        <input type="text" name="singlePrice" id="VOAQ" v-model="VOAQ" class="form-control form-control-sm">
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-sm-11 offset-sm-1">
+        <table class="table table-light">
+            <h3>差异分析（正为favorable，负为adverse）</h3>
+            <tr>
+                <td>
+                    <span>直接原材料价差(MaterialPriceVariance)：</span>
+                </td>
+                <td v-text="result.MaterialPriceVariance">
+                </td>
+                <td>
+                    <span>直接原材料量差(MaterialUsageVariance)：</span>
+                </td>
+                <td v-text="result.MaterialUsageVariance">
+                </td>
+                <td>
+                    <span>直接人工价差(LaborRateVariance)：</span>
+                </td>
+                <td v-text="result.LaborRateVariance">
+                </td>
+                <td>
+                    <span>直接人工量差(LaborEfficiencyVariance)：</span>
+                </td>
+                <td v-text="result.LaborEfficiencyVariance">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span>变动间接费用价差(VOSpendingVariance)：</span>
+                </td>
+                <td v-text="result.VOSpendingVariance">
+                </td>
+                <td>
+                    <span>变动间接费用量差(VOEfficiencyVariance)：</span>
+                </td>
+                <td v-text="result.VOEfficiencyVariance">
+                </td>
+                <td>
+                    <span>固定间接费用价差(FOVolumeVariance)：</span>
+                </td>
+                <td v-text="result.FOVolumeVariance">
+                </td>
+                <td>
+                    <span>固定间接费用量差(FOSpendingVariance)：</span>
+                </td>
+                <td v-text="result.FOSpendingVariance">
+                </td>
+            </tr>
+        </table>
+        </div>
+    </div>
+</div>
+<script th:src="@{/moon/js/jquery.js}"></script>
+<script th:src="@{/layer/layer.js}"></script>
+<script th:src="@{/moon/js/vue.js}"></script>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            DMSP:0,
+            DLSP:0,
+            VOSP:0,
+            FOSP:0,
+            DMSQ:0,
+            DLSQ:0,
+            VOSQ:0,
+            FOBP:0,
+            DMAP:0,
+            DLAP:0,
+            VOAP:0,
+            FOAP:0,
+            DMAQ:0,
+            DLAQ:0,
+            VOAQ:0,
+            result:[]
+        },
+        methods: {
+            getResult: function () {
+                $.ajax({
+                    url: "/variance/getResult",
+                    type: "POST",
+                    data: {
+                        DMSP:this.DMSP,
+                        DLSP:this.DLSP,
+                        VOSP:this.VOSP,
+                        FOSP:this.FOSP,
+                        DMSQ:this.DMSQ,
+                        DLSQ:this.DLSQ,
+                        VOSQ:this.VOSQ,
+                        FOBP:this.FOBP,
+                        DMAP:this.DMAP,
+                        DLAP:this.DLAP,
+                        VOAP:this.VOAP,
+                        FOAP:this.FOAP,
+                        DMAQ:this.DMAQ,
+                        DLAQ:this.DLAQ,
+                        VOAQ:this.VOAQ
+                    },
+                    success: function (data) {
+                        if(data.msg!="success"){
+                            layer.msg(data.msg)
+                            return;
+                        }else {
+                            layer.msg("计算成功！");
+                            app.result=data.result;
+                        }
+
+
+                    }
+
+                });
+            }
+        }
+
+
+    })
+
+
+</script>
+</body>
+</html>

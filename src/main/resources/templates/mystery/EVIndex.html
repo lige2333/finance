@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PV/Annuity</title>
+    <link rel="stylesheet" th:href="@{/moon/css/bootstrap.css}" type="text/css"/>
+    <link rel="stylesheet" th:href="@{/icon/css/font-awesome.min.css}" type="text/css"/>
+</head>
+<body>
+<div class="container-fluid"id="app">
+    <h1 align="center">期望值计算</h1>
+    <div class="row">
+        <div class="col-sm-4 offset-sm-1">
+            <h3>数据输入</h3>
+            <table class="table table-light">
+                <tr>
+                    <td>
+                        <span>概率（小数形式）</span>
+                        <input type="text" name="probability" id="probability" v-model="probability" class="form-control form-control-sm">
+                    </td>
+                    <td>
+                        <span>期望值：</span>
+                        <input type="text" name="outcome" id="outcome" v-model="outcome" class="form-control form-control-sm">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="button" name="in" id="add" value="添加可能性" @click="addSituation()" class="btn btn-sm btn-outline-warning">
+                        <input type="button" name="in" id="in" value="计算EV" @click="getResult()" class="btn btn-sm btn-outline-warning">
+                        <input type="button" name="clear" id="clear" value="清空" @click="clearList()" class="btn btn-sm btn-outline-warning">
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr v-for="ev in situations">
+                    <td>情况：</td>
+                    <td>概率：</td>
+                    <td  v-text="ev.probability"></td>
+                    <td>预计收益：</td>
+                    <td  v-text="ev.outcome"></td>
+                </tr>
+                <tr>
+                    <td>期望值：</td>
+                    <td id="EVresult" v-text="EVresult"></td>
+                </tr>
+            </table>
+
+        </div>
+
+
+    </div>
+</div>
+<script th:src="@{/moon/js/jquery.js}"></script>
+<script th:src="@{/layer/layer.js}"></script>
+<script th:src="@{/moon/js/vue.js}"></script>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            probability:"",
+            outcome:"",
+            situations:[],
+            EVresult:""
+        },
+        methods: {
+            addSituation: function () {
+                $.ajax({
+                    url: "/EV/saveOutcome",
+                    type: "POST",
+                    data: {
+                        probability:this.probability,
+                        outcome:this.outcome
+                    },
+                    dataType: "JSON",
+                    success: function (data) {
+                        if(data.msg!="success"){
+                            layer.msg(data.msg)
+                            return;
+                        }else {
+                            layer.msg("添加成功！");
+                            app.situations=data.situations;
+                        }
+                    }
+
+                });
+            },
+            getResult: function () {
+                $.ajax({
+                    url: "/EV/calEV",
+                    type: "POST",
+                    data: {
+
+                    },
+                    dataType: "JSON",
+                    success: function (data) {
+                        if(data.msg!="success"){
+                            layer.msg(data.msg)
+                            return;
+                        }else {
+                            layer.msg("计算成功！");
+                            app.EVresult=data.EVresult;
+                        }
+                    }
+
+                });
+            },
+            clearList: function () {
+                $.ajax({
+                    url: "/EV/clearList",
+                    type: "POST",
+                    data: {
+                    },
+                    success: function (data) {
+                        layer.msg(data)
+                        app.probability="";
+                        app.situations=[];
+                        app.outcome="";
+                        app.EVresult="";
+                    }
+
+                });
+            }
+        }
+
+
+    })
+
+
+</script>
+</body>
+</html>
